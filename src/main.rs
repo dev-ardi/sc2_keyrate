@@ -35,7 +35,7 @@ fn get_repeat_delay() -> anyhow::Result<(u32, u32)> {
         Err(anyhow::anyhow!("Failed to retrieve FILTERKEYS settings"))
     }
 }
-fn set_repeat_delay(repeat: u32, delay: u32) -> anyhow::Result<()> {
+fn set_repeat_delay(repeat: u32, delay: u32) {
     let mut fk = FILTERKEYS {
         cbSize: std::mem::size_of::<FILTERKEYS>() as u32,
         dwFlags: 1 | 2,
@@ -53,12 +53,7 @@ fn set_repeat_delay(repeat: u32, delay: u32) -> anyhow::Result<()> {
             0,
         ) != 0
     };
-
-    if success {
-        Ok(())
-    } else {
-        Err(anyhow::anyhow!("Failed to set FILTERKEYS settings"))
-    }
+    assert!(success);
 }
 
 fn parse_from_stdin() -> Option<u32> {
@@ -69,6 +64,10 @@ fn parse_from_stdin() -> Option<u32> {
         if data == "" {
             return None;
         }
+        if data == "q" || data == "quit" || data == "exit" {
+            std::process::exit(0);
+        }
+
         match data.parse::<u32>() {
             Ok(parsed) => return Some(parsed),
             Err(e) => {
@@ -91,8 +90,8 @@ fn main() -> anyhow::Result<()> {
         print!("Type desired repeat rate rate and press enter (leave blank to skip)\n> ");
         let repeat = parse_from_stdin().unwrap_or(repeat);
 
-        set_repeat_delay(repeat, delay)?;
+        set_repeat_delay(repeat, delay);
 
-        println!("Done! you can exit the program with Control C")
+        println!("Done! you can exit the program with Control C or by typing quit and pressing enter.\n>")
     }
 }
